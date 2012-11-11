@@ -1,0 +1,115 @@
+#!/usr/bin/env python
+
+# Copyright 2012 Jake Basile
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from twisted.internet import protocol, reactor
+from twisted.words.protocols import irc
+import os
+import re
+import pkgutil
+import UserDict
+import redis
+import argparse
+
+class Yaubot(irc.IRCClient):
+
+    @property
+    def nickname(self):
+        return self.factory.nick
+
+    def signedOn(self):
+        for chan in self.factory.chans:
+            print('Joining %s' % chan)
+            self.join(chan)
+
+    def privmsg(self, user, channel, message):
+        user_nick = user.split('!')[0]
+        for regex in self.factory.script_modules:
+            results = re.search(regex.replace('%NICK', self.factory.nick), message) 
+            if results:
+                try:
+                    brain = YauBrain(self.factory.redis, script_modules[regex].__name__)
+                    response = self.factory.script_modules[regex].respond(
+                        brain,
+                        user_nick,
+                        message,
+                        results.groupdict(),
+                    )
+                    if isinstance(response, basestring):
+                        self.say(channel, response)
+                    else:
+                        map(lambda r: self.say(channel, r) if r is not None else None, response)
+                except Exception as e:
+                    print(e)
+                    self.say(channel, 'DOES NOT COMPUTE! ERROR ERROR ERROR!')
+
+class YauBrain(object, UserDict.DictMixin):
+    
+    def __init__(self, redis_instance, name):
+        self.redis = redis_instance
+        self.name = name
+
+    def __get_key__(self, key):
+        return '%s:%s' % (self.name, key)
+
+    def __getitem__(self, key):
+        result = self.redis.get(self.__get_key__(key))
+        if result is None:
+            raise KeyError
+        return result
+
+    def __setitem__(self, key, value):
+        self.redis.set(self.__get_key__(key), value)
+
+    def __delitem__(self, key):
+        self.redis.delete(self.__get_key__(key))
+
+    def keys(self):
+        return self.redis.keys(self.__get_key__('*'))
+
+
+class YaubotFactory(protocol.ClientFactory):
+    protocol = Yaubot
+
+    def __init__(self, nick, chans, script_modules, redis_instance):
+        self.nick = nick
+        self.chans = chans
+        self.script_modules = script_modules
+        self.redis = redis_instance
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Yet Another Unnecessary Bot.')
+    parser.add_argument('serv', help='What IRC Server to connect to.')
+    parser.add_argument('port', help='The IRC Port to connect to.')
+    parser.add_argument('nick', help='The bot\'s nickname.')
+    parser.add_argument('redis', help='Redis URL for the botbrain.')
+    parser.add_argument('chan', nargs=argparse.REMAINDER, help='The channel[s] to join.')
+
+    args = parser.parse_args()
+    redis_instance = redis.from_url(args.redis)
+
+    import scripts
+    script_modules = {}
+    for importer, script_name, ispkg in pkgutil.walk_packages(scripts.__path__):
+        s_mod = __import__('scripts.%s' % script_name, fromlist=[script_name])
+        script_modules[s_mod.__matcher__] = s_mod
+
+    reactor.connectTCP(
+        args.serv,
+        int(args.port),
+        YaubotFactory(args.nick, args.chan, script_modules, redis_instance)
+    )
+    reactor.run()
+
