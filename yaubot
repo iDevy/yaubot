@@ -25,35 +25,30 @@ import argparse
 
 class Yaubot(irc.IRCClient):
 
-    @property
-    def nickname(self):
-        return self.factory.nick
+    def __init__(self):
+        self.nick = os.environ.get('YAUBOT_NICK', 'yaubot')
+        self.redis = redis.from_url(os.environ.get('YAUBOT_REDIS', 'redis://localhost:6379'))
+        import scripts
+        self.script_modules = {}
+        for importer, script_name, ispkg in pkgutil.walk_packages(scripts.__path__):
+            s_mod = __import__('scripts.%s' % script_name, fromlist=[script_name])
+            self.script_modules[s_mod.__matcher__] = s_mod
 
-    def signedOn(self):
-        for chan in self.factory.chans:
-            print('Joining %s' % chan)
-            self.join(chan)
-
-    def privmsg(self, user, channel, message):
-        user_nick = user.split('!')[0]
-        for regex in self.factory.script_modules:
-            results = re.search(regex.replace('%NICK', self.factory.nick), message, re.IGNORECASE)
+    def proc(self, user, message):
+        for regex in self.script_modules:
+            results = re.search(regex.replace('%NICK', self.nick), message, re.IGNORECASE)
             if results:
                 try:
-                    brain = YauBrain(self.factory.redis, script_modules[regex].__name__)
-                    response = self.factory.script_modules[regex].respond(
+                    brain = YauBrain(self.redis, self.script_modules[regex].__name__)
+                    return self.script_modules[regex].respond(
                         brain,
-                        user_nick,
+                        user,
                         message,
                         results.groupdict(),
                     )
-                    if isinstance(response, basestring):
-                        self.say(channel, response)
-                    else:
-                        map(lambda r: self.say(channel, r) if r is not None else None, response)
                 except Exception as e:
                     print(e)
-                    self.say(channel, 'DOES NOT COMPUTE! ERROR ERROR ERROR!')
+                    return 'DOES NOT COMPUTE! ERROR ERROR ERROR!'
 
 class YauBrain(object, UserDict.DictMixin):
     
@@ -80,36 +75,10 @@ class YauBrain(object, UserDict.DictMixin):
         return self.redis.keys(self.__get_key__('*'))
 
 
-class YaubotFactory(protocol.ClientFactory):
-    protocol = Yaubot
-
-    def __init__(self, nick, chans, script_modules, redis_instance):
-        self.nick = nick
-        self.chans = chans
-        self.script_modules = script_modules
-        self.redis = redis_instance
-
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Yet Another Unnecessary Bot.')
-    parser.add_argument('serv', help='What IRC Server to connect to.')
-    parser.add_argument('port', help='The IRC Port to connect to.')
-    parser.add_argument('nick', help='The bot\'s nickname.')
-    parser.add_argument('redis', help='Redis URL for the botbrain.')
-    parser.add_argument('chan', nargs=argparse.REMAINDER, help='The channel[s] to join.')
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument('adapter', help='The adapter to use.')
     args = parser.parse_args()
-    redis_instance = redis.from_url(args.redis)
-
-    import scripts
-    script_modules = {}
-    for importer, script_name, ispkg in pkgutil.walk_packages(scripts.__path__):
-        s_mod = __import__('scripts.%s' % script_name, fromlist=[script_name])
-        script_modules[s_mod.__matcher__] = s_mod
-
-    reactor.connectTCP(
-        args.serv,
-        int(args.port),
-        YaubotFactory(args.nick, args.chan, script_modules, redis_instance)
-    )
-    reactor.run()
-
+    adapter = __import__('adapters.' + args.adapter, fromlist=['run'])
+    adapter.run(Yaubot())
+    
