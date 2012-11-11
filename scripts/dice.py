@@ -14,7 +14,7 @@
 
 import random
 
-__matcher__ = '(?P<num>[0-9]*)d(?P<type>[0-9]+)'
+__matcher__ = '(?P<num>[0-9]{1,3})d(?P<type>[0-9]{1,4})'
 
 def respond(brain, user, message, groups):
     num = int(groups['num'])
