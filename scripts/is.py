@@ -16,14 +16,14 @@ __matcher__ = '%NICK,? +((?P<who>\w*) is (?P<what>.*)|(describe|tell me about) (
 
 def respond(brain, user, message, groups):
     if 'query' in groups and groups['query'] is not None:
-        who = groups['query']
+        who = groups['query'].title()
         if who in brain:
             what = brain[who]
             return '%s is %s' %(who, what)
         else:
             return '%s is nothing to me.' % who
     else:
-        who = groups['who']
+        who = groups['who'].title()
         what = groups['what']
         brain[who] = what
         return 'Information stored, meatbag.'
