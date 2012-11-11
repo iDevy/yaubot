@@ -19,7 +19,7 @@ Currently Yaubot only supports IRC. To set that up:
         YAUBOT_IRC_PORT=6667 \
         YAUBOT_IRC_CHANS='#derp,#derp2' \
         YAUBOT_NAME='jarvis'
-    $ ./yaubot
+    $ ./yaubot irc
 
 ## Scripts
 
