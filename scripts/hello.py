@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-__matcher__ = 'hello.*%NICK'
+__matcher__ = '(hello|hi|greetings).*%NICK'
 
 def respond(brain, user, message, groups):
     return 'Greetings meatbag designation %s.' % user
