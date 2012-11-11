@@ -23,7 +23,7 @@ import UserDict
 import redis
 import argparse
 
-class Yaubot(irc.IRCClient):
+class Yaubot(object):
 
     def __init__(self):
         self.nick = os.environ.get('YAUBOT_NICK', 'yaubot')
