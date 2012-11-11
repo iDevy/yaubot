@@ -37,7 +37,7 @@ class Yaubot(irc.IRCClient):
     def privmsg(self, user, channel, message):
         user_nick = user.split('!')[0]
         for regex in self.factory.script_modules:
-            results = re.search(regex.replace('%NICK', self.factory.nick), message) 
+            results = re.search(regex.replace('%NICK', self.factory.nick), message, re.IGNORECASE)
             if results:
                 try:
                     brain = YauBrain(self.factory.redis, script_modules[regex].__name__)
