@@ -29,10 +29,11 @@ class IRCAdapter(irc.IRCClient):
     def privmsg(self, user, channel, message):
         user_nick = user.split('!')[0]
         response = self.factory.bot.proc(user_nick, message)
-        if isinstance(response, basestring):
-            self.say(channel, response)
-        else:
-            map(lambda r: self.say(channel, r) if r is not None else None, response)
+        if response is not None and response != '':
+            if isinstance(response, basestring):
+                self.say(channel, response)
+            else:
+                map(lambda r: self.say(channel, r) if r is not None else None, response)
 
 class IRCAdapterFactory(protocol.ClientFactory):
     protocol = IRCAdapter
