@@ -17,6 +17,7 @@
 import os
 import re
 import pkgutil
+import scripts
 import UserDict
 import redis
 import argparse
@@ -28,11 +29,16 @@ class Yaubot(object):
     def __init__(self):
         self.nick = os.environ.get('YAUBOT_NICK', 'yaubot')
         self.redis = redis.from_url(os.environ.get('YAUBOT_REDIS', 'redis://localhost:6379'))
-        import scripts
         self.script_modules = {}
-        for importer, script_name, ispkg in pkgutil.walk_packages(scripts.__path__):
-            s_mod = __import__('scripts.%s' % script_name, fromlist=[script_name])
-            self.script_modules[s_mod.__matcher__] = s_mod
+        for importer, script_name, ispkg in pkgutil.walk_packages(scripts.__path__, 'scripts.'):
+            if not ispkg:
+                loader = pkgutil.get_loader(script_name)
+                s_mod = loader.load_module(script_name)
+                if hasattr(s_mod, '__matcher__') and hasattr(s_mod, 'respond'):
+                    self.script_modules[s_mod.__matcher__] = s_mod
+                    print('Loaded %s' % script_name)
+                else:
+                    print('Skipped %s, invalid script.' % script_name)
 
     def proc(self, user, message):
         for regex in self.script_modules:
