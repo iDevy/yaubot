@@ -20,7 +20,7 @@ setup(
     description='Yet Another Unnecessary Bot',
     author='Jake Basile',
     url='https://github.com/jakebasile/yaubot',
-    download_url='https://github.com/downloads/jakebasile/yaubot-0.1.tar.gz',
+    download_url='https://github.com/downloads/jakebasile/yaubot/yaubot-0.1.tar.gz',
     packages=find_packages(),
     scripts=[
         'yaubot-runner',
