@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright 2012 Jake Basile
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,14 +13,14 @@
 # limitations under the License.
 
 import os
+import os
 import re
 import pkgutil
-import scripts
 import UserDict
 import redis
-import argparse
 import traceback
 import sys
+import yaubot.scripts as scripts
 
 class Yaubot(object):
 
@@ -30,7 +28,7 @@ class Yaubot(object):
         self.nick = os.environ.get('YAUBOT_NICK', 'yaubot')
         self.redis = redis.from_url(os.environ.get('YAUBOT_REDIS', 'redis://localhost:6379'))
         self.script_modules = {}
-        for importer, script_name, ispkg in pkgutil.walk_packages(scripts.__path__, 'scripts.'):
+        for importer, script_name, ispkg in pkgutil.walk_packages(scripts.__path__, 'yaubot.scripts.'):
             if not ispkg:
                 loader = pkgutil.get_loader(script_name)
                 s_mod = loader.load_module(script_name)
@@ -81,11 +79,3 @@ class YauBrain(object, UserDict.DictMixin):
     def keys(self):
         return self.redis.keys(self.__get_key__('*'))
 
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('adapter', help='The adapter to use.')
-    args = parser.parse_args()
-    adapter = __import__('adapters.' + args.adapter, fromlist=['run'])
-    adapter.run(Yaubot())
-    
