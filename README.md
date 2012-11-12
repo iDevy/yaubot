@@ -46,6 +46,7 @@ It will need a minimal `setup.py` that declares any requirements. Here is some b
         author='John Q Taxpayer',
         packages=find_packages(),
         install_requires=[
+            'yaubot==0.1',
             'requests==0.14.2',
         ],
     )
