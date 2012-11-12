@@ -26,14 +26,10 @@ To make your own scripts, put them in a package structure like this:
 
     my-custom-yaubot-scripts/
         setup.py
-        yaubot/
+        my-custom-yaubot-scripts/
             __init__.py
-            scripts/
-                __init__.py
-                mycustomscripts/
-                    __init__.py
-                    foo.py
-                    bar.py
+            foo.py
+            bar.py
 
 It will need a minimal `setup.py` that declares any requirements. Here is some boilerplate:
 
@@ -46,7 +42,7 @@ It will need a minimal `setup.py` that declares any requirements. Here is some b
         author='John Q Taxpayer',
         packages=find_packages(),
         install_requires=[
-            'yaubot==0.1',
+            'yaubot==0.2',
         ],
     )
 
@@ -54,14 +50,7 @@ You would then install them with pip:
 
     $ pip install /path/to/my-custom-yaubot-scripts
 
-Do not use `pip -e` while working on scripts! The entire yaubot package must be uninstalled and reinstalled:
-
-    $ pip freeze | grep yaubot | sed 's/\(.*\)==.*/\1/' | xargs pip uninstall -y
-    $ pip install yaubot /path/to/my-custom-yaubot-scripts
-
-I know this is less than ideal. I'm working on making it better.
-
-## Configuration
+## Configuration and Execution
 
 Currently Yaubot only supports IRC. To set that up:
 
@@ -69,7 +58,10 @@ Currently Yaubot only supports IRC. To set that up:
         YAUBOT_IRC_PORT=6667 \
         YAUBOT_IRC_CHANS='#derp,#derp2' \
         YAUBOT_NAME='jarvis'
-    $ yaubot-runner irc
+
+Then, to run Yaubot, just tell it which adapter and script packages to load:
+
+    $ yaubot-runner irc -p yaubot-fun -p my-custom-yaubot-scripts
 
 And it's running.
 

@@ -21,7 +21,12 @@ import yaubot.core
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('adapter', help='The adapter to use.')
+    parser.add_argument('-p', '--package', help='Package names for scripts.', action='append')
     args = parser.parse_args()
     adapter = __import__('yaubot.adapters.' + args.adapter, fromlist=['run'])
-    adapter.run(yaubot.core.Yaubot())
+    bot = yaubot.core.Yaubot()
+    bot.load_scripts('yaubot.scripts.core')
+    for package in args.package:
+        bot.load_scripts(package)
+    adapter.run(bot)
     
