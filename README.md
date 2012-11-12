@@ -24,7 +24,7 @@ Yaubot works with `pip` to manage its scripts. There are several packages availa
 
 To make your own scripts, put them in a package structure like this:
 
-    my-custom-scripts/
+    my-custom-yaubot-scripts/
         setup.py
         yaubot/
             __init__.py
@@ -40,20 +40,26 @@ It will need a minimal `setup.py` that declares any requirements. Here is some b
     from setuptools import setup, find_packages
 
     setup(
-        name='my-custom-scripts',
+        name='my-custom-yaubot-scripts',
         version='0.1',
         description='super awesome custom scripts!',
         author='John Q Taxpayer',
         packages=find_packages(),
         install_requires=[
             'yaubot==0.1',
-            'requests==0.14.2',
         ],
     )
 
 You would then install them with pip:
 
-    $ pip install /path/to/my-custom-scripts
+    $ pip install /path/to/my-custom-yaubot-scripts
+
+Do not use `pip -e` while working on scripts! The entire yaubot package must be uninstalled and reinstalled:
+
+    $ pip freeze | grep yaubot | sed 's/\(.*\)==.*/\1/' | xargs pip uninstall -y
+    $ pip install yaubot /path/to/my-custom-yaubot-scripts
+
+I know this is less than ideal. I'm working on making it better.
 
 ## Configuration
 
