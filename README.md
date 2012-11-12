@@ -25,5 +25,7 @@ Currently Yaubot only supports IRC. To set that up:
 
 Yaubot works like a low-rent clone of Hubot, because that's what it is. It finds scripts in the `scripts` directory, checks against their `__matcher__` regex and runs them if it matches. Check out any of the included scripts for details.
 
+You can use subdirectories of `scripts` if you like. Works well with git submodules.
+
 **Note**: Yaubot must be restarted to recognize new scripts.
 
