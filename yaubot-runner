@@ -26,7 +26,8 @@ if __name__ == '__main__':
     adapter = __import__('yaubot.adapters.' + args.adapter, fromlist=['run'])
     bot = yaubot.core.Yaubot()
     bot.load_scripts('yaubot.scripts.core')
-    for package in args.package:
-        bot.load_scripts(package)
+    if args.package is not None:
+        for package in args.package:
+            bot.load_scripts(package)
     adapter.run(bot)
     
