@@ -12,19 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import requests
-import random
+from setuptools import setup, find_packages
 
-__matcher__ = '%NICK.*make me aww.*'
+setup(
+    name='yaubot',
+    version='0.1',
+    description='Yet Another Unnecessary Bot',
+    author='Jake Basile',
+    url='https://github.com/jakebasile/yaubot',
+    download_url='https://github.com/downloads/jakebasile/yaubot-0.1.tar.gz',
+    packages=find_packages(),
+    scripts=[
+        'yaubot-runner',
+    ],
+    install_requires=[
+        'Twisted==12.2.0',
+        'zope.interface==4.0.1',
+        'redis==2.7.1',
+    ],
+)
 
-def respond(brain, user, message, groups):
-    result = requests.get('http://reddit.com/r/aww.json')
-    if result.status_code != 200:
-        return 'Cute appropriation failed.'
-    cute_images = [
-        str(c['data']['url'])
-        for c in result.json['data']['children']
-        if not c['data']['url'].endswith(u'.gif')
-    ]
-    return random.choice(cute_images)
 
