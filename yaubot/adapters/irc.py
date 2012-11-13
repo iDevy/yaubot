@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from twisted.internet import protocol, reactor
+from twisted.internet import protocol, reactor, ssl
 from twisted.words.protocols import irc
 import os
 
@@ -21,6 +21,10 @@ class IRCAdapter(irc.IRCClient):
     @property
     def nickname(self):
         return self.factory.nick
+
+    @property
+    def password(self):
+        return self.factory.password
 
     def signedOn(self):
         for chan in self.factory.chans:
@@ -38,20 +42,30 @@ class IRCAdapter(irc.IRCClient):
 class IRCAdapterFactory(protocol.ClientFactory):
     protocol = IRCAdapter
 
-    def __init__(self, nick, chans, bot):
+    def __init__(self, nick, chans, bot, password=None):
         self.bot = bot
         self.nick = nick
+        self.password = password
         self.chans = chans
 
 def run(bot):
     serv = os.environ['YAUBOT_IRC_SERV']
     port = int(os.environ['YAUBOT_IRC_PORT'])
     nick = bot.nick
+    password = os.environ.get('YAUBOT_IRC_PASSWORD', None)
     chans = os.environ['YAUBOT_IRC_CHANS'].split(',')
-    reactor.connectTCP(
-        serv,
-        port,
-        IRCAdapterFactory(nick, chans, bot)
-    )
+    if os.environ.get('YAUBOT_IRC_SSL', 'False') == 'True':
+        reactor.connectSSL(
+            serv,
+            port,
+            IRCAdapterFactory(nick, chans, bot, password=password),
+            ssl.ClientContextFactory(),
+        )
+    else:
+        reactor.connectTCP(
+            serv,
+            port,
+            IRCAdapterFactory(nick, chans, bot, password=password),
+        )
     reactor.run()
     

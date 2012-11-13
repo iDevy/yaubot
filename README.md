@@ -59,6 +59,8 @@ Currently Yaubot only supports IRC. To set that up:
         YAUBOT_IRC_CHANS='#derp,#derp2' \
         YAUBOT_NAME='jarvis'
 
+To enable SSL, `export YAUBOT_IRC_SSL=True`. To set a password, `export YAUBOT_IRC_PASSWORD='password'`.
+
 Then, to run Yaubot, just tell it which adapter and script packages to load:
 
     $ yaubot-runner irc -p yaubot-fun -p my-custom-yaubot-scripts
