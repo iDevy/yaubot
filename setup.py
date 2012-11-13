@@ -16,11 +16,11 @@ from setuptools import setup, find_packages
 
 setup(
     name='yaubot',
-    version='0.1',
+    version='0.2',
     description='Yet Another Unnecessary Bot',
     author='Jake Basile',
     url='https://github.com/jakebasile/yaubot',
-    download_url='https://github.com/downloads/jakebasile/yaubot/yaubot-0.1.tar.gz',
+    download_url='https://github.com/downloads/jakebasile/yaubot/yaubot-0.2.tar.gz',
     packages=find_packages(),
     scripts=[
         'yaubot-runner',
@@ -29,6 +29,7 @@ setup(
         'Twisted==12.2.0',
         'zope.interface==4.0.1',
         'redis==2.7.1',
+        'pyopenssl==0.13',
     ],
 )
 
