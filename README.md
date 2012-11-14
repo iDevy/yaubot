@@ -8,6 +8,10 @@ Frustrated with Hubot being terrible to install? Try **Yet Another Unnecessary B
 
 That's it. Move on to the next section.
 
+## Dependencies
+
+Pip will take care of the python dependencies, but you need to give Yaubot access to [redis](http://redis.io) if you want it to remember anything. By default, it tries to connect to `redis://localhost:6379`, but you can change that with the `YAUBOT_REDIS` environment variable.
+
 ## Scripts
 
 ### Premade Scripts
