@@ -21,6 +21,14 @@ import redis
 import traceback
 import sys
 
+def script_iter(package_name):
+    package = __import__(package_name, fromlist=[package_name])
+    for importer, script_name, ispkg in pkgutil.walk_packages(package.__path__, '%s.' % package_name):
+        if not ispkg:
+            loader = pkgutil.get_loader(script_name)
+            script = loader.load_module(script_name)
+            yield script
+
 class Yaubot(object):
 
     def __init__(self):
@@ -29,23 +37,19 @@ class Yaubot(object):
         self.script_modules = {}
 
     def load_scripts(self, package_name):
-        package = __import__(package_name, fromlist=[package_name])
-        for importer, script_name, ispkg in pkgutil.walk_packages(package.__path__, '%s.' % package_name):
-            if not ispkg:
-                loader = pkgutil.get_loader(script_name)
-                script = loader.load_module(script_name)
-                if hasattr(script, '__matcher__') and hasattr(script, 'respond'):
-                    self.script_modules[script.__matcher__] = script
-                    print('loaded %s' % script_name)
-                else:
-                    print('skipped %s, invalid script' % script_name)
+        for script in script_iter(package_name):
+            if hasattr(script, '__matcher__') and hasattr(script, 'respond'):
+                self.script_modules[script.__matcher__] = script
+                print('loaded %s' % script.__name__)
+            else:
+                print('skipped %s, invalid script' % script.__name__)
 
     def proc(self, user, message):
         for regex in self.script_modules:
             results = re.search(regex.replace('%NICK', self.nick), message, re.IGNORECASE)
             if results:
                 try:
-                    brain = YauBrain(self.redis, self.script_modules[regex].__name__)
+                    brain = YauBrain(self.script_modules[regex].__name__, self)
                     return self.script_modules[regex].respond(
                         brain,
                         user,
@@ -59,9 +63,13 @@ class Yaubot(object):
 
 class YauBrain(object, UserDict.DictMixin):
     
-    def __init__(self, redis_instance, name):
-        self.redis = redis_instance
+    def __init__(self, name, bot):
         self.name = name
+        self.redis = bot.redis
+        self.bot_info = {
+            'scripts': bot.script_modules.values(),
+            'nick': bot.nick,
+        }
 
     def __get_key__(self, key):
         return '%s:%s' % (self.name, key)
