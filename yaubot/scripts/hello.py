@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+'''Gives you a friendly greeting.'''
+
 __matcher__ = '(hello|hi|greetings).*%NICK'
 
 def respond(brain, user, message, groups):
