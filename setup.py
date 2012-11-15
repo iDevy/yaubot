@@ -16,11 +16,11 @@ from setuptools import setup, find_packages
 
 setup(
     name='yaubot',
-    version='0.2',
+    version='0.3',
     description='Yet Another Unnecessary Bot',
     author='Jake Basile',
     url='https://github.com/jakebasile/yaubot',
-    download_url='https://github.com/downloads/jakebasile/yaubot/yaubot-0.2.tar.gz',
+    download_url='https://github.com/downloads/jakebasile/yaubot/yaubot-0.3.tar.gz',
     packages=find_packages(),
     scripts=[
         'yaubot-runner',
